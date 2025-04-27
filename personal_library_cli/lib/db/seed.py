@@ -1,66 +1,96 @@
+#!/usr/bin/env python3
+# seed.py
+
 import datetime
+import os
+import sys
 
-from models import Base, engine, SessionLocal, Author, Genre, Book
+# Make sure our project root is on sys.path, so "db" and "lib" are importable
+PROJECT_ROOT = os.path.dirname(__file__)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-# Create all tables
-Base.metadata.create_all(bind=engine)
+from db.models import Base, engine, get_db_session, Author, Genre, Book
 
-# Open a session
-session = SessionLocal()
+# ── Data to seed ────────────────────────────────────────────────────────────
 
-# --- Seed data ---
-# Authors
-authors = [
-    Author(name="J. R. R. Tolkien"),
-    Author(name="George Orwell"),
-    Author(name="Harper Lee")
+AUTHOR_NAMES = [
+    "J. R. R. Tolkien",
+    "George Orwell",
+    "Harper Lee",
 ]
 
-# Genres
-genres = [
-    Genre(name="Fantasy"),
-    Genre(name="Dystopian"),
-    Genre(name="Classic")
+GENRE_NAMES = [
+    "Fantasy",
+    "Dystopian",
+    "Classic",
 ]
 
-# Add authors and genres
-session.add_all(authors + genres)
-session.commit()
-
-# Fetch saved authors/genres
-tolkien = session.query(Author).filter_by(name="J. R. R. Tolkien").one()
-orwell = session.query(Author).filter_by(name="George Orwell").one()
-lee = session.query(Author).filter_by(name="Harper Lee").one()
-
-fantasy = session.query(Genre).filter_by(name="Fantasy").one()
-dystopian = session.query(Genre).filter_by(name="Dystopian").one()
-classic = session.query(Genre).filter_by(name="Classic").one()
-
-# Books with relationships
-books = [
-    Book(
-        title="The Hobbit",
-        published_date=datetime.date(1937, 9, 21),
-        author=tolkien,
-        genres=[fantasy, classic]
-    ),
-    Book(
-        title="1984",
-        published_date=datetime.date(1949, 6, 8),
-        author=orwell,
-        genres=[dystopian, classic]
-    ),
-    Book(
-        title="To Kill a Mockingbird",
-        published_date=datetime.date(1960, 7, 11),
-        author=lee,
-        genres=[classic]
-    )
+BOOKS = [
+    {
+        "title": "The Hobbit",
+        "published_date": datetime.date(1937, 9, 21),
+        "author_name": "J. R. R. Tolkien",
+        "genres": ["Fantasy", "Classic"],
+    },
+    {
+        "title": "1984",
+        "published_date": datetime.date(1949, 6, 8),
+        "author_name": "George Orwell",
+        "genres": ["Dystopian", "Classic"],
+    },
+    {
+        "title": "To Kill a Mockingbird",
+        "published_date": datetime.date(1960, 7, 11),
+        "author_name": "Harper Lee",
+        "genres": ["Classic"],
+    },
 ]
 
-# Add books and commit
-session.add_all(books)
-session.commit()
-session.close()
+# ── Seeding helpers ──────────────────────────────────────────────────────────
 
-print("Database seeded successfully!")
+def create_schema():
+    """Create all tables if they don’t exist."""
+    Base.metadata.create_all(bind=engine)
+
+def seed_authors(session):
+    """Insert authors if missing."""
+    for name in AUTHOR_NAMES:
+        if not session.query(Author).filter_by(name=name).first():
+            session.add(Author(name=name))
+
+def seed_genres(session):
+    """Insert genres if missing."""
+    for name in GENRE_NAMES:
+        if not session.query(Genre).filter_by(name=name).first():
+            session.add(Genre(name=name))
+
+def seed_books(session):
+    """Insert books, wiring up their author/genre relationships."""
+    for data in BOOKS:
+        if session.query(Book).filter_by(title=data["title"]).first():
+            continue
+
+        author = session.query(Author).filter_by(name=data["author_name"]).one()
+        genres = session.query(Genre).filter(Genre.name.in_(data["genres"])).all()
+        book = Book(
+            title=data["title"],
+            published_date=data["published_date"],
+            author=author,
+            genres=genres,
+        )
+        session.add(book)
+
+# ── Main ────────────────────────────────────────────────────────────────────
+
+def main():
+    create_schema()
+    with get_db_session() as session:
+        seed_authors(session)
+        seed_genres(session)
+        session.flush()   # ensure PKs before books
+        seed_books(session)
+    print("✅ Database seeded successfully!")
+
+if __name__ == "__main__":
+    main()

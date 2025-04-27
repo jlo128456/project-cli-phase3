@@ -1,49 +1,76 @@
-import os
-from sqlalchemy import (
-    create_engine, Column, Integer, String, Date, ForeignKey, Table
-)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+# db/models.py
 
-# Database URL (defaults to local SQLite file)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///library.db")
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+from contextlib import contextmanager
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Table
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+
+# import your helpers
+from lib.helpers import get_database_url, create_db_engine
+
+# ── Engine & Session ────────────────────────────────────────────────────────
+DATABASE_URL = get_database_url()
+engine       = create_db_engine(DATABASE_URL, echo=True)
+
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False,
 )
 
-# Base class and session
+@contextmanager
+def get_db_session():
+    session = SessionLocal()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
 Base = declarative_base()
-SessionLocal = sessionmaker(bind=engine)
 
-# Association table for books ↔ genres
+# ── Association Table ───────────────────────────────────────────────────────
 book_genre = Table(
-    "book_genre", Base.metadata,
-    Column("book_id", ForeignKey("books.id"), primary_key=True),
-    Column("genre_id", ForeignKey("genres.id"), primary_key=True)
+    "book_genre",
+    Base.metadata,
+    Column("book_id",  ForeignKey("books.id"),  primary_key=True),
+    Column("genre_id", ForeignKey("genres.id"), primary_key=True),
 )
+
+# ── Models ───────────────────────────────────────────────────────────────────
 
 class Author(Base):
     __tablename__ = "authors"
-    id   = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    books = relationship("Book", back_populates="author")
+    id    = Column(Integer, primary_key=True)
+    name  = Column(String, unique=True, nullable=False)
+    books = relationship(
+        "Book",
+        back_populates="author",
+        cascade="all, delete-orphan"
+    )
 
 class Genre(Base):
     __tablename__ = "genres"
-    id   = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
+    id    = Column(Integer, primary_key=True)
+    name  = Column(String, unique=True, nullable=False)
     books = relationship(
-        "Book", secondary=book_genre, back_populates="genres"
+        "Book",
+        secondary=book_genre,
+        back_populates="genres"
     )
 
 class Book(Base):
     __tablename__ = "books"
     id             = Column(Integer, primary_key=True)
-    title          = Column(String)
+    title          = Column(String, nullable=False)
     published_date = Column(Date)
-    author_id      = Column(Integer, ForeignKey("authors.id"))
+    author_id      = Column(Integer, ForeignKey("authors.id"), nullable=False)
+
     author = relationship("Author", back_populates="books")
     genres = relationship(
-        "Genre", secondary=book_genre, back_populates="books"
+        "Genre",
+        secondary=book_genre,
+        back_populates="books"
     )
