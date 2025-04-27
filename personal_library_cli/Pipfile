@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-click = "*"
 sqlalchemy = "*"
 alembic = "*"
 
@@ -12,4 +11,3 @@ alembic = "*"
 
 [requires]
 python_version = "3.9"
-python_full_version = "3.9.2"
