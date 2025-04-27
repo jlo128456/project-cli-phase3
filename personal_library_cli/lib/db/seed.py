@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.dirname(__file__)
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from db.models import Base, engine, get_db_session, Author, Genre, Book
+from models import Base, engine, get_db_session, Author, Genre, Book
 
 # ── Data to seed ────────────────────────────────────────────────────────────
 
