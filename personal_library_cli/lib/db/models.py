@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from sqlalchemy import Table, Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 
-from lib.db.session import SessionLocal, engine  # ✅ FIXED: No helper import
+from lib.db.session import SessionLocal, engine  #  FIXED: No helper import
 
 # Context manager for DB session
 @contextmanager

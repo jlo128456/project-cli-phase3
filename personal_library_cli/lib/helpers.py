@@ -3,7 +3,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from lib.db.session import SessionLocal  # <-- import your session factory
+
 
 def get_database_url(env_var: str = "DATABASE_URL", default: str = "sqlite:///library.db") -> str:
     """Read the database URL from environment, falling back to `default` if not set."""
