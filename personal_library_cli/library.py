@@ -1,5 +1,5 @@
 import click
-from models import (
+from lib.db.models import (
     engine,          # SQLAlchemy engine for database connection
     Base,            # Declarative base holding metadata for all models
     get_db_session,  # Context manager yielding a database session
