@@ -8,29 +8,33 @@ from lib.db.models import (
     Genre            # ORM model for genres
 )
 
+from lib.db.seed import run_seed
+
 @click.group()
 def library():
     """Manage your personal book library."""
     pass
 
-@library.command("create-tables")
-@click.option(
-    "--reset/--no-reset",
-    default=False,
-    help="If set, drop all existing tables before creating them"
-)
-def create_tables(reset):
-    """Create all tables from ORM models, with optional reset."""
+@cli.command("create-tables", help="Create tables, optionally resetting and seeding the DB.")
+@click.option("--reset/--no-reset", default=True, help="Drop existing tables before creating new ones.")
+@click.option("--seed", is_flag=True, help="Also populate the tables with sample data.")
+def create_tables(reset, seed):
     if reset:
-        Base.metadata.drop_all(engine)         # drop existing tables
-        click.echo("Dropped all existing tables")
-
-    Base.metadata.create_all(engine)           # create tables if missing
-
-    if reset:
-        click.echo("Tables recreated from models.")
+        click.secho("Dropping all existing tables...", fg="red")
+        Base.metadata.drop_all(engine)
     else:
-        click.echo("Tables created (if not present).")
+        click.secho("Skipping drop (keeping existing tables)...", fg="yellow")
+
+    click.secho("Creating tables...", fg="green")
+    Base.metadata.create_all(engine)
+
+    if seed:
+        click.secho("Seeding initial data...", fg="yellow")
+        run_seed()
+        click.secho("Database seeded successfully.", fg="cyan")
+    else:
+        click.secho("Tables created (no seed).", fg="cyan")
+
 
 @library.command("list-books")
 def list_books():

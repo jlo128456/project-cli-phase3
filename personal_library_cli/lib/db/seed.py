@@ -85,14 +85,14 @@ def seed_books(session):
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
-def main():
+def run_seed():
     create_schema()
     with get_db_session() as session:
         seed_authors(session)
         seed_genres(session)
         session.flush()   # ensure PKs before books
         seed_books(session)
-    print("✅ Database seeded successfully!")
+    print("Database seeded successfully!")
 
 if __name__ == "__main__":
-    main()
+    run_seed()
