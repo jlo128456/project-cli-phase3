@@ -15,25 +15,25 @@ def library():
     """Manage your personal book library."""
     pass
 
-@cli.command("create-tables", help="Create tables, optionally resetting and seeding the DB.")
+@library.command("create-tables", help="Create tables, optionally resetting and seeding the DB.")
 @click.option("--reset/--no-reset", default=True, help="Drop existing tables before creating new ones.")
 @click.option("--seed", is_flag=True, help="Also populate the tables with sample data.")
 def create_tables(reset, seed):
     if reset:
-        click.secho("Dropping all existing tables...", fg="red")
+        click.echo("Dropping all existing tables...", fg="red")
         Base.metadata.drop_all(engine)
     else:
-        click.secho("Skipping drop (keeping existing tables)...", fg="yellow")
+        click.echo("Skipping drop (keeping existing tables)...", fg="yellow")
 
-    click.secho("Creating tables...", fg="green")
+    click.echo("Creating tables...", fg="green")
     Base.metadata.create_all(engine)
 
     if seed:
-        click.secho("Seeding initial data...", fg="yellow")
+        click.echo("Seeding initial data...", fg="yellow")
         run_seed()
-        click.secho("Database seeded successfully.", fg="cyan")
+        click.echo("Database seeded successfully.", fg="cyan")
     else:
-        click.secho("Tables created (no seed).", fg="cyan")
+        click.echo("Tables created (no seed).", fg="cyan")
 
 
 @library.command("list-books")
