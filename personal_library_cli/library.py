@@ -1,4 +1,4 @@
-ifrom commands.create_tables import create_tables
+from commands.create_tables import create_tables
 from commands.list_books import list_books
 from commands.add_book import add_book
 from commands.delete_book import delete_book
