@@ -1,7 +1,7 @@
-# lib/db/session.py
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from contextlib import contextmanager
 
 # Inline helper (formerly from helpers.py)
 def get_database_url(env_var: str = "DATABASE_URL", default: str = "sqlite:///library.db") -> str:
@@ -15,3 +15,16 @@ engine = create_engine(
     echo=False
 )
 SessionLocal = sessionmaker(bind=engine)
+
+# Context manager for sessions
+@contextmanager
+def get_db_session():
+    session = SessionLocal()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
