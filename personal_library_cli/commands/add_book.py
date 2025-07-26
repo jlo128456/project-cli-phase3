@@ -1,4 +1,5 @@
 import click
+from datetime import datetime
 from lib.db.models import Book, Author, Genre
 from lib.db.session import get_db_session
 
@@ -6,8 +7,16 @@ def add_book():
     try:
         title = click.prompt("Title", type=str)
         author_name = click.prompt("Author", type=str)
-        published_date = click.prompt("Published Date (YYYY-MM-DD)", type=str)
+        date_str = click.prompt("Published Date (YYYY-MM-DD)", type=str)
         genre_input = click.prompt("Genres (comma-separated)", type=str)
+
+        #  Convert string to datetime.date
+        try:
+            published_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            click.echo(" Invalid date format. Please use YYYY-MM-DD.")
+            click.prompt("Press Enter to return to the Book Menu", default="", show_default=False)
+            return
 
         with get_db_session() as session:
             # Get or create author
@@ -15,7 +24,7 @@ def add_book():
             if not author:
                 author = Author(name=author_name)
                 session.add(author)
-                session.flush()  # Get ID
+                session.flush()
 
             # Get or create genres
             genre_objs = []
