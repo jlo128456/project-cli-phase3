@@ -29,6 +29,10 @@ def search_books():
                 print("{:<4} {:<30} {:<12} {:<20}".format(b.id, b.title, str(b.published_date), b.author.name))
         else:
             print("No books found.")
+    input("\nPress Enter to return to Book Menu...")
+
+def pause_return():
+    input("\nPress Enter to return to Book Menu...")
 
 def book_menu():
     while True:
@@ -37,12 +41,15 @@ def book_menu():
         choice = input("Select an option (1–5): ").strip()
         if choice == "1":
             list_books()
+            pause_return()
         elif choice == "2":
             add_book()
+            pause_return()
         elif choice == "3":
             confirm_delete(input("Enter the book ID to delete: ").strip())
+            pause_return()
         elif choice == "4":
-            search_books()
+            search_books()  # includes its own pause
         elif choice == "5":
             break
         else:
@@ -55,6 +62,7 @@ def db_menu():
         choice = input("Select an option (1–2): ").strip()
         if choice == "1":
             create_tables()
+            input("\nPress Enter to return to Database Menu...")
         elif choice == "2":
             break
         else:
