@@ -2,13 +2,12 @@ import click
 from lib.db.models import Book, Author, Genre
 from lib.db.session import get_db_session
 
-@click.command("add-book")
-@click.option("--title", prompt="Title")
-@click.option("--author", prompt="Author")
-@click.option("--date", prompt="Published Date (YYYY-MM-DD)")
-@click.option("--genres", prompt="Genres (comma separated)")
-def add_book(title, author, date, genres):
-    """Add a new book to the library."""
+def add_book():
+    title = click.prompt("Title")
+    author = click.prompt("Author")
+    date = click.prompt("Published Date (YYYY-MM-DD)")
+    genres = click.prompt("Genres (comma separated)")
+
     with get_db_session() as session:
         auth = session.query(Author).filter_by(name=author).first()
         if not auth:
@@ -28,3 +27,5 @@ def add_book(title, author, date, genres):
         book = Book(title=title, published_date=date, author=auth, genres=genre_objs)
         session.add(book)
         click.echo(f"Added book #{book.id}: {book.title}")
+    
+    click.prompt("\nPress Enter to return to the Book Menu", prompt_suffix='', default='', show_default=False)

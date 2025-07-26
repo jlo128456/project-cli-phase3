@@ -1,23 +1,22 @@
 import click
-from lib.db.models import engine, Base
+from lib.db.models import Base, engine
 from lib.db.seed import run_seed
 
-@click.command("create-tables", help="Create tables, optionally resetting and seeding the DB.")
-@click.option("--reset/--no-reset", default=True, help="Drop existing tables before creating new ones.")
-@click.option("--seed", is_flag=True, help="Also populate the tables with sample data.")
-def create_tables(reset, seed):
-    if reset:
-        click.echo("Dropping all existing tables...", err=True)
-        Base.metadata.drop_all(engine)
-    else:
-        click.echo("Skipping drop (keeping existing tables)...")
+def create_tables():
+    reset = click.confirm("Reset existing tables?", default=True)
+    seed = click.confirm("Seed with sample data?", default=False)
 
+    if reset:
+        click.echo("Dropping existing tables...")
+        Base.metadata.drop_all(engine)
+    
     click.echo("Creating tables...")
     Base.metadata.create_all(engine)
 
     if seed:
-        click.echo("Seeding initial data...")
         run_seed()
-        click.echo("Database seeded successfully.")
+        click.echo("Database seeded.")
     else:
-        click.echo("Tables created (no seed).")
+        click.echo("Tables created without seeding.")
+
+    click.prompt("\nPress Enter to return to the Main Menu", prompt_suffix='', default='', show_default=False)
